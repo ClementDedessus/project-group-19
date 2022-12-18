@@ -1,7 +1,9 @@
-import { getRememberMe, setAuthenticatedUser, setRememberMe } from '../../utils/auths';
+import { setAuthenticatedUser } from '../../utils/auths';
 import { clearPage, renderPageTitle } from '../../utils/render';
 import Navbar from '../Navbar/Navbar';
 import Navigate from '../Router/Navigate';
+
+const Swal = require('sweetalert2')
 
 const RegisterPage = () => {
   clearPage();
@@ -28,36 +30,12 @@ function renderRegisterForm() {
   const submit = document.createElement('input');
   submit.value = 'Register';
   submit.type = 'submit';
-  submit.className = 'btn btn-info';
-  const formCheckWrapper = document.createElement('div');
-  formCheckWrapper.className = 'mb-3 form-check';
-
-  const rememberme = document.createElement('input');
-  rememberme.type = 'checkbox';
-  rememberme.className = 'form-check-input';
-  rememberme.id = 'rememberme';
-  const remembered = getRememberMe();
-  rememberme.checked = remembered;
-  rememberme.addEventListener('click', onCheckboxClicked);
-
-  const checkLabel = document.createElement('label');
-  checkLabel.htmlFor = 'rememberme';
-  checkLabel.className = 'form-check-label';
-  checkLabel.textContent = 'Remember me';
-
-  formCheckWrapper.appendChild(rememberme);
-  formCheckWrapper.appendChild(checkLabel);
-
+  submit.className = 'btn btn-danger';
   form.appendChild(username);
   form.appendChild(password);
-  form.appendChild(formCheckWrapper);
   form.appendChild(submit);
   main.appendChild(form);
   form.addEventListener('submit', onRegister);
-}
-
-function onCheckboxClicked(e) {
-  setRememberMe(e.target.checked);
 }
 
 async function onRegister(e) {
@@ -79,11 +57,18 @@ async function onRegister(e) {
 
   const response = await fetch(`${process.env.API_BASE_URL}/auths/register`, options);
 
-  if (!response.ok) throw new Error(`fetch error : ${response.status} : ${response.statusText}`);
+  if (!response.ok) {
+    Swal.fire({
+      position: 'center',
+      icon: 'error',
+      title: "Vos données ont déjà été utilisée comme identifiant",
+      showConfirmButton: false,
+      timer: 2000
+    })
+  }
 
   const authenticatedUser = await response.json();
 
-  // eslint-disable-next-line no-console
   console.log('Newly registered & authenticated user : ', authenticatedUser);
 
   setAuthenticatedUser(authenticatedUser);
